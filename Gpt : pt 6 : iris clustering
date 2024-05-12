@@ -1,0 +1,69 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
+from sklearn.metrics import accuracy_score
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Load the Iris dataset
+iris = load_iris()
+x = iris.data
+y = iris.target
+
+# Normalize the data using Standardization
+scaler = StandardScaler()
+x_normalized = scaler.fit_transform(x)
+
+# Function to evaluate clustering algorithms
+def evaluate_clustering(labels_true, labels_pred):
+    return accuracy_score(labels_true, labels_pred) * 100
+
+# Simple KMeans clustering
+def simple_kmeans(x_normalized, y):
+    kmeans = KMeans(n_clusters=3, init='k-means++', n_init=10, max_iter=300)
+    y_kmeans = kmeans.fit_predict(x_normalized)
+    kmeans_score = evaluate_clustering(y, y_kmeans)
+    return y_kmeans, kmeans_score
+
+# Simple DBSCAN clustering
+def simple_dbscan(x_normalized, y):
+    dbscan = DBSCAN(eps=0.1, min_samples=1)
+    y_dbscan = dbscan.fit_predict(x_normalized)
+    # dbscan_score = evaluate_clustering(y, y_dbscan)
+    return y_dbscan, None
+
+# Simple Hierarchical Clustering
+def simple_hierarchical(x, y):
+    hc = AgglomerativeClustering(n_clusters=3, linkage='ward')
+    y_hc = hc.fit_predict(x)
+    hc_score = evaluate_clustering(y, y_hc)
+    return y_hc, hc_score
+
+# Plotting function for clustering results
+def plot_clusters(x, y, y_pred, title):
+    plt.scatter(x[:, 0], x[:, 1], c=y_pred, s=50, cmap='viridis')
+    plt.title(title)
+    plt.show()
+
+# Plotting dendrogram for Hierarchical Clustering
+def plot_dendrogram(x):
+    linked = linkage(x, 'ward')
+    plt.figure(figsize=(10, 7))
+    dendrogram(linked, orientation='top', distance_sort='descending', show_leaf_counts=True)
+    plt.title("Dendrogram")
+    plt.show()
+
+# Perform clustering and evaluate performance
+y_kmeans, kmeans_score = simple_kmeans(x_normalized, y)
+y_dbscan, _ = simple_dbscan(x_normalized, y)
+y_hc, hc_score = simple_hierarchical(x, y)
+
+# Plotting the clustering results
+plot_clusters(x, y, y_kmeans, "KMeans")
+plot_clusters(x, y, y_dbscan, "DBSCAN")
+plot_clusters(x, y, y_hc, "Hierarchical Clustering")
+
+# Plotting dendrogram for Hierarchical Clustering
+plot_dendrogram(x)
