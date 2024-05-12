@@ -11,120 +11,113 @@ Compare the accuracy of the classifiers obtained.
 
 
 
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
-from sklearn.model_selection import train_test_splitfrom sklearn import tree
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.datasets import load_iris
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
-from sklearn.tree import plot_tree
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import accuracy_score, classification_reportimport matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-import warnings
+
+# Load the Iris dataset
 iris = load_iris()
-x=iris.data
-y=iris.target
-print(x.shape)
-print(y.shape)
-(150, 4)
-(150,)
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(x)
-
-
-
-
-
-
-k_size = 0.25
-r_seeds = 100
-X_train, X_test, y_train, y_test = train_test_split(x,y,test_size = k_size, random_state=r_seeds)
-print("Shape of X_train: ", X_train.shape)
-print("Shape of X_test: ", X_test.shape)
-print("Shape of y_train: ", y_train.shape)
-print("Shape of y_test: ", y_test.shape)
-Shape of X_train: (112, 4)
-Shape of X_test: (38, 4)
-Shape of y_train: (112,)
-Shape of y_test: (38,)
-
-
-
-
-deci_tree = DecisionTreeClassifier(criterion='entropy')deci_tree.fit(X_train, y_train)
-prediction = deci_tree.predict(X_test)
-cm = confusion_matrix(y_test, prediction)
-plt.figure(figsize=(3, 3))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)plt.xlabel('Predicted labels')
-plt.ylabel('True labels')
-plt.title('Confusion Matrix')
-plt.show()
-# Plot the decision tree
-plt.figure(figsize=(8, 8))
-plot_tree(deci_tree, filled=True, feature_names=iris.feature_names, class_names=iris.target_names)
-plt.show()
-accuracy_dt = accuracy_score(y_test, prediction)
-print("Accuracy on Hold Out method using classification:", accuracy_dt*100,"%")
-report = classification_report(y_test, prediction)
-print("Classification Report:\n", report)
-
-
-
-
-
-knn = KNeighborsClassifier()
-knn.fit(X_train, y_train)
-prediction2 = knn.predict(X_test)
-# Ignore FutureWarning from scikit-learn
-warnings.filterwarnings("ignore", category=FutureWarning)accuracy_knn = accuracy_score(y_test, prediction2)
-print("Accuracy on Hold Out method using classification:", accuracy_knn*100,"%")
-report = classification_report(y_test, prediction2)
-print("Classification Report:\n", report)
-
-
-
-nb = GaussianNB()
-nb.fit(X_train, y_train)
-GaussianNB()
-prediction3 = nb.predict(X_test)
-accuracy_nb = accuracy_score(y_test, prediction3)
-print("Accuracy on Hold Out method using classification:", accuracy_nb*100,"%")
-report = classification_report(y_test, prediction3)
-print("Classification Report:\n", report)
-
-
-
-
-iris = load_iris()
-x = iris.data
+X = iris.data
 y = iris.target
-subsample_size = 25
-test_size = 0.25 # 25% of the data will be used for testingindices = np.random.choice(len(x), size=subsample_size, replace=True)x_subsample = x[indices]
-y_subsample = y[indices]
-# Split the subsampled data into training and testing setsX_train, X_test, y_train, y_test = train_test_split(x_subsample, y_subsample, test_size=test_size, random_state=42)
-# Standardize the features
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-# Standardize the features
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-# Train Decision Tree Classifier on the scaled training datadeci_tree = DecisionTreeClassifier(criterion="entropy")deci_tree.fit(X_train_scaled, y_train)
-# Predict on the scaled test data
-y_pred = deci_tree.predict(X_test_scaled)
-# Calculate accuracy
-accuracy = accuracy_score(y_test, y_pred)
-print("Accuracy:", accuracy)
 
+# Function to print accuracy, confusion matrix, classification report, and decision tree plot
+def print_results(model, X_train, X_test, y_train, y_test):
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    
+    accuracy = accuracy_score(y_test, y_pred)
+    print("Accuracy:", accuracy)
+    
+    cm = confusion_matrix(y_test, y_pred)
+    print("Confusion Matrix:\n", cm)
+    
+    report = classification_report(y_test, y_pred)
+    print("Classification Report:\n", report)
+    
+    if isinstance(model, DecisionTreeClassifier):
+        plt.figure(figsize=(8, 6))
+        plot_tree(model, filled=True, feature_names=iris.feature_names, class_names=iris.target_names)
+        plt.show()
 
+# Scenario implementation
+def run_scenario(test_size, subsampling=False):
+    if subsampling:
+        indices = np.random.choice(len(X), size=int(len(X) * test_size), replace=False)
+        X_subsample = X[indices]
+        y_subsample = y[indices]
+        X_train, X_test, y_train, y_test = train_test_split(X_subsample, y_subsample, test_size=test_size, random_state=42)
+    else:
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
 
-# Generate classification report
-report = classification_report(y_test, y_pred,
-target_names=iris.target_names)
-print("Classification Report:")
-print(report)
+    # Decision Tree Classifier
+    print("Decision Tree Classifier:")
+    dt = DecisionTreeClassifier(criterion='entropy')
+    print_results(dt, X_train, X_test, y_train, y_test)
 
+    # K-Nearest Neighbors Classifier
+    print("K-Nearest Neighbors Classifier:")
+    knn = KNeighborsClassifier()
+    print_results(knn, X_train, X_test, y_train, y_test)
 
+    # Naive Bayes Classifier
+    print("Naive Bayes Classifier:")
+    nb = GaussianNB()
+    print_results(nb, X_train, X_test, y_train, y_test)
+
+if __name__ == "__main__":
+    # Holdout Method with 25% test size
+    print("\nHoldout Method with 25% Test Size:")
+    run_scenario(test_size=0.25)
+
+    # Holdout Method with 33% test size
+    print("\nHoldout Method with 33% Test Size:")
+    run_scenario(test_size=0.33)
+
+    # Random Subsampling Method with 25% test size
+    print("\nRandom Subsampling Method with 25% Test Size:")
+    run_scenario(test_size=0.25, subsampling=True)
+
+    # Random Subsampling Method with 33% test size
+    print("\nRandom Subsampling Method with 33% Test Size:")
+    run_scenario(test_size=0.33, subsampling=True)
+
+    # Cross-Validation Method with 25% test size
+    print("\nCross-Validation Method with 25% Test Size:")
+    cv_accuracy_25 = cross_val_score(DecisionTreeClassifier(criterion='entropy'), X, y, cv=5)
+    print("Mean Accuracy (Decision Tree) using Cross-Validation:", np.mean(cv_accuracy_25))
+
+    cv_accuracy_25 = cross_val_score(KNeighborsClassifier(), X, y, cv=5)
+    print("Mean Accuracy (K-Nearest Neighbors) using Cross-Validation:", np.mean(cv_accuracy_25))
+
+    cv_accuracy_25 = cross_val_score(GaussianNB(), X, y, cv=5)
+    print("Mean Accuracy (Naive Bayes) using Cross-Validation:", np.mean(cv_accuracy_25))
+
+    # Cross-Validation Method with 33% test size
+    print("\nCross-Validation Method with 33% Test Size:")
+    cv_accuracy_33 = cross_val_score(DecisionTreeClassifier(criterion='entropy'), X, y, cv=5)
+    print("Mean Accuracy (Decision Tree) using Cross-Validation:", np.mean(cv_accuracy_33))
+
+    cv_accuracy_33 = cross_val_score(KNeighborsClassifier(), X, y, cv=5)
+    print("Mean Accuracy (K-Nearest Neighbors) using Cross-Validation:", np.mean(cv_accuracy_33))
+
+    cv_accuracy_33 = cross_val_score(GaussianNB(), X, y, cv=5)
+    print("Mean Accuracy (Naive Bayes) using Cross-Validation:", np.mean(cv_accuracy_33))
+
+    # Scaling data using StandardScaler
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    # Holdout Method with 25% test size (Scaled Data)
+    print("\nHoldout Method with 25% Test Size (Scaled Data):")
+    run_scenario(test_size=0.25, subsampling=False)
+
+    # Holdout Method with 33% test size (Scaled Data)
+    print("\nHoldout Method with 33% Test Size (Scaled Data):")
+    run_scenario(test_size=0.33, subsampling=False)
