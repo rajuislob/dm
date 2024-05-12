@@ -1,0 +1,86 @@
+Q2. Perform the following preprocessing tasks on the dirty_iris datasetii.
+i) Calculate the number and percentage of observations that are complete.
+ii) Replace all the special values in data with NA.
+iii) Define these rules in a separate text file and read them.
+(Use editfile function in R (package editrules). Use similar function in Python).
+Print the resulting constraint object.
+– Species should be one of the following values: setosa, versicolor or virginica.
+– All measured numerical properties of an iris should be positive.
+– The petal length of an iris is at least 2 times its petal width.
+– The sepal length of an iris cannot exceed 30 cm.
+– The sepals of an iris are longer than its petals.
+iv)Determine how often each rule is broken (violatedEdits). Also summarize and plot the
+result.
+v) Find outliers in sepal length using boxplot and boxplot.stats
+
+
+
+import pandas as pd
+import numpy as np
+     
+
+df = pd.read_csv('dirty_iris.csv')
+     
+
+df
+
+df1 = (df.isna().any(axis=1)==0).sum()
+     
+
+df1
+
+
+df3 = (df1/(len(df)))*100
+print("Percentage of No of observation", df3)
+
+
+df['Sepal.Length'].unique()
+
+df['Sepal.Width'].unique()
+     
+
+
+
+df['Petal.Length'].unique()
+
+
+df['Petal.Width'].unique()
+
+
+df['Petal.Width'].replace(np.inf,0,inplace=True)
+
+
+df['Petal.Width'].unique()
+
+isValidSpecies = (df["Species"]=="setosa") | (df["Species"]=="virginica") | (df["Species"]=="versicolor")
+a=isValidSpecies.count()-isValidSpecies.sum()
+
+isValidSpecies = (df["Sepal.Length"]>0) | (df["Petal.Length"]>0) | (df["Petal.Width"]>0) | (df["Sepal.Length"]>0)
+b=isValidSpecies.count() -isValidSpecies.sum()
+
+
+isValidLength = (df["Petal.Length"]) >(df["Petal.Width"].astype("float64")*2)
+c=isValidLength.count() -isValidLength.sum()
+
+
+
+isValidSepLen = df["Sepal.Length"]<30
+d=isValidSepLen.count() -isValidSepLen.sum()
+
+
+import matplotlib.pyplot as plt
+x=["A","B","C","D"]
+y=[a,b,c,d]
+plt.bar(x,y)
+     
+
+
+isLonger = df["Sepal.Length"]>df["Petal.Length"]
+
+import plotly.express as px
+px.box(df["Sepal.Length"])
+
+
+df['Sepal.Length'].describe()
+
+
