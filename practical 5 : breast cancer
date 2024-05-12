@@ -10,3 +10,140 @@ Compare the accuracy of the classifiers obtained.
 
 
 
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.naive_bayes import GaussianNB
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import ConfusionMatrixDisplay
+
+# Load Breast Cancer dataset
+cancer = load_breast_cancer()
+X = cancer.data
+y = cancer.target
+
+# Function to print accuracy, confusion matrix, classification report, and decision tree plot
+def print_results(model, X_train, X_test, y_train, y_test):
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    
+    accuracy = accuracy_score(y_test, y_pred)
+    print("Accuracy:", accuracy)
+    
+    cm = confusion_matrix(y_test, y_pred)
+    print("Confusion Matrix:\n", cm)
+    
+    report = classification_report(y_test, y_pred)
+    print("Classification Report:\n", report)
+    
+    if isinstance(model, DecisionTreeClassifier):
+        plt.figure(figsize=(8, 6))
+        plot_tree(model, filled=True, feature_names=cancer.feature_names, class_names=cancer.target_names)
+        plt.show()
+
+# Holdout Method with 25% test size
+def holdout_method(test_size):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+
+    print("Holdout Method with", int(test_size*100), "% Test Size:")
+    
+    # Decision Tree Classifier
+    print("Decision Tree Classifier:")
+    dt = DecisionTreeClassifier(criterion='entropy')
+    print_results(dt, X_train, X_test, y_train, y_test)
+
+    # K-Nearest Neighbors Classifier
+    print("K-Nearest Neighbors Classifier:")
+    knn = KNeighborsClassifier()
+    print_results(knn, X_train, X_test, y_train, y_test)
+
+    # Naive Bayes Classifier
+    print("Naive Bayes Classifier:")
+    nb = GaussianNB()
+    print_results(nb, X_train, X_test, y_train, y_test)
+
+# Random Subsampling Method with 25% test size
+def random_subsampling(test_size):
+    print("Random Subsampling Method with", int(test_size*100), "% Test Size:")
+    k = 20
+    for i in range(k):
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+        
+        # Decision Tree Classifier
+        print("Decision Tree Classifier (Iteration", i+1, "):")
+        dt = DecisionTreeClassifier(criterion='entropy')
+        print_results(dt, X_train, X_test, y_train, y_test)
+        
+        # K-Nearest Neighbors Classifier
+        print("K-Nearest Neighbors Classifier (Iteration", i+1, "):")
+        knn = KNeighborsClassifier()
+        print_results(knn, X_train, X_test, y_train, y_test)
+        
+        # Naive Bayes Classifier
+        print("Naive Bayes Classifier (Iteration", i+1, "):")
+        nb = GaussianNB()
+        print_results(nb, X_train, X_test, y_train, y_test)
+
+# Cross-Validation Method with 25% test size
+def cross_validation(test_size):
+    print("Cross-Validation Method with", int(test_size*100), "% Test Size:")
+    
+    # Decision Tree Classifier
+    print("Decision Tree Classifier:")
+    dt = DecisionTreeClassifier(criterion='entropy')
+    scores = cross_val_score(dt, X, y, cv=5)
+    print("Mean Accuracy (Decision Tree) using Cross-Validation:", np.mean(scores))
+    
+    # K-Nearest Neighbors Classifier
+    print("K-Nearest Neighbors Classifier:")
+    knn = KNeighborsClassifier()
+    scores = cross_val_score(knn, X, y, cv=5)
+    print("Mean Accuracy (K-Nearest Neighbors) using Cross-Validation:", np.mean(scores))
+    
+    # Naive Bayes Classifier
+    print("Naive Bayes Classifier:")
+    nb = GaussianNB()
+    scores = cross_val_score(nb, X, y, cv=5)
+    print("Mean Accuracy (Naive Bayes) using Cross-Validation:", np.mean(scores))
+
+# Scaling data using StandardScaler
+def scale_data(test_size):
+    print("Scaling Data using StandardScaler and Performing all Activities Again with", int(test_size*100), "% Test Size:")
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    # Holdout Method
+    holdout_method(test_size)
+    
+    # Random Subsampling Method
+    random_subsampling(test_size)
+    
+    # Cross-Validation Method
+    cross_validation(test_size)
+
+if __name__ == "__main__":
+    # Holdout Method with 25% test size
+    holdout_method(0.25)
+
+    # Holdout Method with 33% test size
+    holdout_method(0.33)
+
+    # Random Subsampling Method with 25% test size
+    random_subsampling(0.25)
+
+    # Random Subsampling Method with 33% test size
+    random_subsampling(0.33)
+
+    # Cross-Validation Method with 25% test size
+    cross_validation(0.25)
+
+    # Cross-Validation Method with 33% test size
+    cross_validation(0.33)
+
+    # Scaling data using StandardScaler
+    scale_data(0.25)
+    scale_data(0.33)
