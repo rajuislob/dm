@@ -1,0 +1,80 @@
+Q1. Create a file “people.txt” with the following data:
+Age agegroup height status yearsmarried
+21 adult 6.0 single -1
+2 child 3 married 0
+18 adult 5.7 married 20
+221 elderly 5 widowed 2
+34 child -7 married 3
+
+i) Read the data from the file “people.txt”.
+ii) Create a ruleset E that contain rules to check for the following conditions:
+1. The age should be in the range 0-150.
+2. The age should be greater than yearsmarried.
+3. The status should be married or single or widowed.
+4. If age is less than 18 the agegroup should be child, if age is between 18 and 65 the agegroup
+should be adult, if age is more than 65 the agegroup should be elderly.
+iii) Check whether ruleset E is violated by the data in the file people.txt.
+iv) Summarize the results obtained in part (iii)
+v) Visualize the results obtained in part (iii)
+
+
+
+
+
+
+import pandas as pd
+import numpy as np
+     
+
+df = pd.read_table("people.txt")
+     
+
+df
+
+
+isvalidAge = (df["Age"]>=0)  &  (df["Age"]<=150)
+     
+
+s1 = isvalidAge.shape[0]
+invalid1 = s1 - isvalidAge.sum()
+invalid1
+
+
+isvalidAgeMarried=(df["Age"] >= df["yearsmarried"])
+     
+
+invalid2 = isvalidAgeMarried.count()- isvalidAgeMarried.sum()
+invalid2
+    
+
+
+isvalidStatus = (df["status"] == "single") | (df["status"]=="married") |(df["status"] == "widowed")
+     
+
+invalid3 =isvalidStatus.count() -  isvalidStatus.sum()
+invalid3
+
+isvalidAgegroup = (df["Age"]<18) & (df['agegroup'] == 'child') | ((df["Age"]>=18) & (df["Age"]<65)) &(df['agegroup'] =='adult') |  (df["Age"]>65) &( df['agegroup'] == 'elderly')
+invalid4 = isvalidAgegroup.count() -  isvalidAgegroup.sum()
+invalid4
+
+
+import matplotlib.pyplot as plt
+
+     
+
+x=["Age","married","status","agegroup"]
+y=[invalid1,invalid2,invalid3,invalid4]
+plt.bar(x,y)
+     
+
+
+def ruleset(df):
+    df["Rule1"]=df["Age"].apply(lambda x: True if x>0 and x<150 else False)
+    df["Rule2"]=df.apply(lambda x:True if x.Age>x.yearsmarried else False,axis=1)
+    df["Rule3"]=df.apply(lambda x:True if (x.status=="single")|(x.status=="married" and x.Age>18)|(x.status=="widowed" and x.Age>18) else False,axis=1)
+    df['Rule4']=df.apply(lambda x: True if (x.Age<18 and x.agegroup=='child')|((x.Age>=18 and x.Age<65) and x.agegroup=='adult' ) | (x.Age>65 and x.agegroup == 'elderly') else False, axis=1)
+    
+     
+
+ruleset(df)
